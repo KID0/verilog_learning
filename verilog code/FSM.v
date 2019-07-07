@@ -141,3 +141,55 @@ module detector_Moore
 	end
 
 endmodule
+
+
+module air_condition
+#(parameter too_high=2'b00,too_low=2'b01,well_situated=2'b10)
+(
+	input rst_n,clk,high,low,
+	output reg cold,heat
+);
+	reg [1:0] pre_state,next_state;
+	always@(posedge clk, posedge rst_n) begin
+		if(rst_n==1'b1) pre_state<=well_situated;
+		else pre_state<=next_state;
+	end
+	always@(pre_state,high,low) begin
+		next_state=2'bxx;
+		cold=1'b0;
+		heat=1'b0;
+		case(pre_state)
+			well_situated:begin
+				cold=1'b0;
+				heat=1'b0;
+				if (high==1'b1) begin
+					next_state=too_high;
+					cold=1'b1;
+					heat=1'b0;
+				end
+				if (low==1'b1) begin
+					next_state=too_low;
+					cold=1'b0;
+					heat=1'b1;
+				end
+			end
+			too_high:begin
+				cold=1'b1;
+				heat=1'b0;
+				if (high==1'b1) begin
+					next_state=too_high;
+					cold=1'b1;
+					heat=1'b0;
+				end
+				else begin
+					next_state=well_situated;
+					cold=1'b0;
+					heat=1'b0;
+				end
+			end
+			default:next_state=well_situated;
+		endcase
+	end
+
+
+endmodule
